@@ -1,6 +1,7 @@
 # generates a map using perlin noise
 
-# colours are poorly done, could use better shading and more intelligent landscape design :(
+# TODO
+#	colours are poorly done, could use better shading and more intelligent landscape design :(
 
 # library imports
 import numpy as np
@@ -32,13 +33,13 @@ def makeImage(height_map):
 			# snowy caps and rocky mountains
 			if height_map[y, x] > 225:
 				# same values but scaled within range(128, 255)
-				img[y, x] = ((heightMap[y, x] - 200) * 4.5, (heightMap[y, x] - 128) * 4.5, (heightMap[y, x] - 128) * 4.5)
+				img[y, x] = ((heightMap[y, x] - 200) * 4.5, (heightMap[y, x] - 200) * 4.5, (heightMap[y, x] - 200) * 4.5)
 			# attempt at making things pretty green colours
 			elif height_map[y, x] > 80:
-				img[y, x] = (50, ((-(height_map[y, x] - 80) / (225-80)) + 1) * 200 + 50, 50)
+				img[y, x] = (50, (height_map[y, x] - 50) * 1.4, 50)
 			# watery depths
 			elif height_map[y, x] <= 80:
-				img[y, x] = (50, 50, (height_map[y, x] / 80) * 150)
+				img[y, x] = (50, 50, (height_map[y, x] / 50) * 200)
 	return img
 
 if __name__ == '__main__':
