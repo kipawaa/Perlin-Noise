@@ -6,13 +6,13 @@ from PIL import Image
 
 
 # perlin noise fade function
-def fade(x):
+def fade(x: float):
     return (6 * x**5) - (15 * x**4) + (10 * x**3)
 
 
 # linear interpolation with weighting
-def lerp(a, b, weight):
-    return (1 - weight) * a + (weight * b)
+def lerp(a, b, weight: float):
+    return a + weight * (b - a)
 
 
 # sub_w is the number of sub-boxes used in generation across the width of the map, sub_h the same for the height of the map
