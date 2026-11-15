@@ -53,12 +53,30 @@ def noise(width: int, height: int, sub_w: int, sub_h: int) -> np.ndarray:
     bottom_lerped_vector = lerp(dots[:, :, 2], dots[:, :, 3], x_weights)
     noise_array = lerp(top_lerped_vector, bottom_lerped_vector, y_weights)
 
-    # normalizes to 0-255
-    noise_array -= noise_array.min()
-    noise_array = (noise_array / noise_array.max() * 255).astype(np.uint8)
-
     return noise_array
 
 
+def normalize(noise_array):
+    """Normalize a noise array to [0, 255]."""
+    noise_array -= noise_array.min()
+    return (noise_array / noise_array.max() * 255).astype(np.uint8)
+
+
+def get_octave_noise(width: int, height: int, n_octaves: int, grid_width: int, grid_height: int):
+    """Return octave stacked noise."""
+    return normalize(
+        np.sum(
+            np.stack(
+                [
+                    noise(width, height, grid_width * 2**i, grid_height * 2**i) * (1 / 2**i)
+                    for i in range(n_octaves)
+                ]
+            ),
+            axis=0,
+        )
+    )
+
+
 if __name__ == "__main__":
-    Image.fromarray(noise(2000, 1000, 10, 5)).show()
+    noise = get_octave_noise(2000, 1000, 4, 5, 2)
+    Image.fromarray(noise).show()
