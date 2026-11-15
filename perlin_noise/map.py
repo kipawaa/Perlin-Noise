@@ -6,15 +6,18 @@ from random import randint, random
 import numpy as np
 from PIL import Image
 
-from perlin_noise.noise import lerp, noise
+from perlin_noise.noise import get_octave_noise, lerp
 
 
 @dataclass(frozen=True)
 class LayerConfig:
+    # layers
     water: int = 60
     forest: int = 190
     stone: int = 245
     snow: int = 255
+
+    # TODO: add layer blending
 
 
 def get_snowy_pixel(height):
@@ -34,23 +37,6 @@ def get_snowy_pixel(height):
 
 def get_stone_pixel(height):
     return np.asarray((112, 112, 112))
-
-
-# width and height define the resolution of the array, minNoise and maxNoise define how many boxes (the corners of which are used to generate vectors that create the noise) are used to create the noise
-def generateHeights(width, height, numLayers, minNoiseRes=2, maxNoiseRes=15):
-    heightMap = np.zeros((height, width))
-    for i in range(numLayers):
-        # used to determine the noise resolution
-        numBoxes = (maxNoiseRes // numLayers) + minNoiseRes
-        # generates a new layer of noise and adds the value to the height map (scaled)
-        heightMap += (1 - (i / numLayers)) * noise(
-            width, height, numBoxes * width // height, numBoxes * height // width
-        )
-
-    # normalizes the map to the range(0, 255)
-    heightMap -= heightMap.min()
-    heightMap = (heightMap / heightMap.max() * 255).astype(np.uint8)
-    return heightMap
 
 
 def makeImage(height_map, config: LayerConfig = LayerConfig()):
@@ -87,7 +73,7 @@ if __name__ == "__main__":
 
     # generates the heights
     print("generating heights")
-    heightMap = generateHeights(width, height, 3)
+    heightMap = get_octave_noise(width, height, 3, 10, 5)
     img = makeImage(heightMap)
 
     # creates an image from the map
