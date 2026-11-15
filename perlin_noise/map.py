@@ -17,26 +17,8 @@ class LayerConfig:
     stone: int = 245
     snow: int = 255
 
-    # TODO: add layer blending
-
-
-def get_snowy_pixel(height):
-    # probabilistically use the noise colour (bright) but scaled within range(128, 255)
-    if random() > 1 - (height / 255):
-        return np.asarray(
-            (
-                (height - 200) * 4.5,
-                (height - 200) * 4.5,
-                (height - 200) * 4.5,
-            )
-        )
-
-    # default stone value
-    return np.asarray((112, 112, 112))
-
-
-def get_stone_pixel(height):
-    return np.asarray((112, 112, 112))
+    # layer blending radius
+    radius: int = 5
 
 
 def makeImage(height_map, config: LayerConfig = LayerConfig()):
@@ -44,24 +26,29 @@ def makeImage(height_map, config: LayerConfig = LayerConfig()):
     map_height, map_width = height_map.shape
     img = np.zeros((map_height, map_width, 3), "uint8")
 
-    for x in range(map_width):
-        for y in range(map_height):
-            # probabilistic snowy caps and rocky mountains
-            height = height_map[y, x]
-            if 200 <= height <= config.snow:
-                img[y, x] = get_snowy_pixel(height)
+    # probabilistic snowy caps and rocky mountains
+    snow_layer = (200 <= height_map) & (height_map <= config.snow)
+    rands = np.random.rand(map_height, map_width)
+    snow_mask = snow_layer & (rands > (1 - height_map / 255))
+    img[snow_mask] = np.stack(
+        [height_map[snow_mask], height_map[snow_mask], height_map[snow_mask]], axis=-1
+    )
 
-            # stony mountains
-            if height <= config.stone:
-                img[y, x] = get_stone_pixel(height)
+    # stony mountains
+    stone_mask = height_map <= config.stone
+    img[stone_mask] = [112, 112, 112]
 
-            # attempt at making things pretty green colours
-            if height <= config.forest:
-                img[y, x] = lerp(np.asarray((27, 48, 41)), np.asarray((70, 90, 72)), (height / 255))
+    # forest layer
+    forest_mask = height_map <= config.forest
+    img[forest_mask] = lerp(
+        np.asarray((27, 48, 41)), np.asarray((70, 90, 72)), (height_map / 255)[..., np.newaxis]
+    )[forest_mask]
 
-            # watery depths
-            if height <= config.water:
-                img[y, x] = lerp(np.asarray((15, 30, 58)), np.asarray((8, 24, 49)), (height / 255))
+    # watery depths
+    water_mask = height_map <= config.water
+    img[water_mask] = lerp(
+        np.asarray((15, 30, 58)), np.asarray((8, 24, 49)), (height_map / 255)[..., np.newaxis]
+    )[water_mask]
 
     return img
 
