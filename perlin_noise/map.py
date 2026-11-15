@@ -26,12 +26,8 @@ if __name__ == "__main__":
     height = 1080
 
     # generates the heights
-    print("generating heights")
     heightMap = get_octave_noise(width, height, 3, 10, 5)
     img = makeImage(heightMap, layers=[SnowLayer(), StoneLayer(), ForestLayer(), WaterLayer()])
 
     # creates an image from the map
-    print("generating image")
     Image.fromarray(img).show()
-
-    print("complete")
