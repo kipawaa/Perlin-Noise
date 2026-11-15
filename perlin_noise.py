@@ -1,19 +1,23 @@
 # generates a perlin noise map
-from PIL import Image
-import numpy as np
 from random import randint
+
+import numpy as np
+from PIL import Image
+
 
 # perlin noise fade function
 def fade(x):
-    return (6 * x **5) - (15 * x ** 4) + (10 * x ** 3)
+    return (6 * x**5) - (15 * x**4) + (10 * x**3)
+
 
 # linear interpolation with weighting
 def lerp(a, b, weight):
     return (1 - weight) * a + (weight * b)
 
+
 # sub_w is the number of sub-boxes used in generation across the width of the map, sub_h the same for the height of the map
 def noise(width, height, sub_w, sub_h):
-    ''' returns a perlin noise height map with values from 0 to 255'''
+    """returns a perlin noise height map with values from 0 to 255"""
     # create an array to store height values
     noise_array = np.zeros((height, width))
 
@@ -21,8 +25,8 @@ def noise(width, height, sub_w, sub_h):
     sub_x = width // sub_w
     sub_y = height // sub_h
 
-    #creates random angles that are then used to generate the
-    #random gradient vectors from the corners of each sub-box
+    # creates random angles that are then used to generate the
+    # random gradient vectors from the corners of each sub-box
     angles = 2 * np.pi * np.random.rand(sub_h + 1, sub_w + 1)
     gradients = np.dstack((np.cos(angles), np.sin(angles)))
 
@@ -60,15 +64,16 @@ def noise(width, height, sub_w, sub_h):
             top_lerped_vector = lerp(dotted_vectors[0], dotted_vectors[2], horizontal_weight)
             bottom_lerped_vector = lerp(dotted_vectors[1], dotted_vectors[3], horizontal_weight)
             final_lerped_vector = lerp(top_lerped_vector, bottom_lerped_vector, vertical_weight)
-            
-	    #adds the height value to the noise_array
+
+            # adds the height value to the noise_array
             noise_array[i, j] = final_lerped_vector
 
-    #normalizes the noise array to the range 0-255
+    # normalizes the noise array to the range 0-255
     noise_array -= noise_array.min()
-    noise_array = (noise_array / noise_array.max() * 255).astype(np.uint8) 
-    
+    noise_array = (noise_array / noise_array.max() * 255).astype(np.uint8)
+
     return noise_array
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     Image.fromarray(noise(2000, 1000, 10, 5)).show()
