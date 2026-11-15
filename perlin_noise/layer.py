@@ -2,19 +2,33 @@ import numpy as np
 
 from perlin_noise.noise import lerp
 
+Colour = tuple[int, int, int]
+
 
 class Layer:
-    def apply(self, height_map, image):
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+        min_height: int = 0,
+        max_height: int = 255,
+    ):
         return NotImplemented
 
 
 class SnowLayer(Layer):
-    def apply(self, height_map, image):
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+        min_height: int = 245,
+        max_height: int = 255,
+    ):
         # probabilistic snowy caps and rocky mountains
         map_height, map_width = height_map.shape
-        snow_layer = 245 <= height_map
+        snow_layer = min_height <= height_map
         rands = np.random.rand(map_height, map_width)
-        snow_mask = snow_layer & (rands > (1 - height_map / 255))
+        snow_mask = snow_layer & (rands > (1 - height_map / max_height))
         image[snow_mask] = np.stack(
             [height_map[snow_mask], height_map[snow_mask], height_map[snow_mask]], axis=-1
         )
@@ -22,30 +36,59 @@ class SnowLayer(Layer):
 
 
 class StoneLayer(Layer):
-    def apply(self, height_map, image):
-        stone_mask = height_map <= 245
-        image[stone_mask] = [112, 112, 112]
+    def __init__(self, stone_colour: Colour | None = None):
+        self.stone_colour = np.asarray(stone_colour or (112, 112, 112))
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+        min_height: int = 0,
+        max_height: int = 245,
+    ):
+        stone_mask = height_map <= max_height
+        image[stone_mask] = self.stone_colour
         return image
 
 
 class ForestLayer(Layer):
-    def apply(self, height_map, image):
-        forest_mask = height_map <= 190
+    def __init__(self, dark_forest: Colour | None = None, light_forest: Colour | None = None):
+        self.dark_forest = np.asarray(dark_forest or (27, 48, 41))
+        self.light_forest = np.asarray(light_forest or (70, 90, 72))
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+        min_height: int = 0,
+        max_height: int = 190,
+    ):
+        forest_mask = height_map <= max_height
         image[forest_mask] = lerp(
-            np.asarray((27, 48, 41)),
-            np.asarray((70, 90, 72)),
+            self.light_forest,
+            self.dark_forest,
             (height_map / 255)[..., np.newaxis],
         )[forest_mask]
         return image
 
 
 class WaterLayer(Layer):
-    def apply(self, height_map, image):
+    def __init__(self, dark_water: Colour | None = None, light_water: Colour | None = None):
+        self.dark_water = np.asarray(dark_water or (8, 24, 49))
+        self.light_water = np.asarray(light_water or (15, 30, 58))
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+        min_height: int = 0,
+        max_height: int = 60,
+    ):
         # watery depths
-        water_mask = height_map <= 60
+        water_mask = height_map <= max_height
         image[water_mask] = lerp(
-            np.asarray((8, 24, 49)),
-            np.asarray((15, 30, 58)),
+            self.dark_water,
+            self.light_water,
             (height_map / 255)[..., np.newaxis],
         )[water_mask]
 

@@ -12,7 +12,6 @@ from perlin_noise.noise import get_octave_noise, lerp
 
 def makeImage(height_map, layers: list[Layer]):
     # stores the colour values of the map
-
     image = np.zeros((*height_map.shape, 3), "uint8")
 
     for layer in layers:
