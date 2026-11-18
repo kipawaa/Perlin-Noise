@@ -7,7 +7,7 @@ from PIL import Image
 
 
 def fade(x):
-    return (6 * x**5) - (15 * x**4) + (10 * x**3)
+    return x * x * x * (x * (x * 6.0 - 15.0) + 10.0)
 
 
 def lerp(a, b, weight):
@@ -24,7 +24,9 @@ def noise(width: int, height: int, sub_w: int, sub_h: int) -> np.ndarray:
     # creates random angles that are then used to generate the
     # random gradient vectors from the corners of each sub-box
     angles = 2 * np.pi * np.random.rand(sub_h + 1, sub_w + 1)
-    gradients = np.dstack((np.cos(angles), np.sin(angles)))
+    gradients = np.empty((sub_h + 1, sub_w + 1, 2), dtype=angles.dtype)
+    np.cos(angles, out=gradients[..., 0])
+    np.sin(angles, out=gradients[..., 1])
 
     # pre-compute offsets and grid coordinates
     x = np.arange(width)
@@ -62,19 +64,24 @@ def normalize(noise_array):
     return (noise_array / noise_array.max() * 255).astype(np.uint8)
 
 
-def get_octave_noise(width: int, height: int, n_octaves: int, grid_width: int, grid_height: int):
+def get_octave_noise(
+    width: int, height: int, n_octaves: int, grid_width: int, grid_height: int, factor: int = 2
+):
     """Return octave stacked noise."""
-    return normalize(
-        np.sum(
-            np.stack(
-                [
-                    noise(width, height, grid_width * 2**i, grid_height * 2**i) * (1 / 2**i)
-                    for i in range(n_octaves)
-                ]
-            ),
-            axis=0,
-        )
-    )
+    # Pre-allocate the output 2D buffer once
+    total_noise = np.zeros((height, width), dtype=np.float32)
+
+    for i in range(n_octaves):
+        sub_w = grid_width * (factor**i)
+        sub_h = grid_height * (factor**i)
+
+        if sub_w >= width or sub_h >= height:
+            break
+
+        octave_data = noise(width, height, sub_w, sub_h)
+        total_noise += octave_data / (factor**i)
+
+    return normalize(total_noise)
 
 
 if __name__ == "__main__":
