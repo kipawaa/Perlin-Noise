@@ -67,7 +67,7 @@ class ForestLayer(Layer):
         self,
         dark_forest: Colour | None = None,
         light_forest: Colour | None = None,
-        max_height: int = 190,
+        max_height: int = 220,
     ):
         self.dark_forest = np.asarray(dark_forest or (27, 48, 41))
         self.light_forest = np.asarray(light_forest or (70, 90, 72))
@@ -87,12 +87,118 @@ class ForestLayer(Layer):
         return image
 
 
+class FlatLightForestLayer(Layer):
+    def __init__(
+        self,
+        light_forest: Colour | None = None,
+        max_height: int = 75,
+    ):
+        self.light_forest = np.asarray(light_forest or (70, 90, 72))
+        self.max_height = max_height
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+    ):
+        forest_mask = height_map <= self.max_height
+        image[forest_mask] = self.light_forest
+        return image
+
+
+class SecondFlatMediumForestLayer(Layer):
+    def __init__(
+        self,
+        medium_forest_colour: Colour | None = None,
+        max_height: int = 145,
+    ):
+        self.medium_forest_colour = np.asarray(medium_forest_colour or (39, 70, 54))
+        self.max_height = max_height
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+    ):
+        forest_mask = height_map <= self.max_height
+        image[forest_mask] = self.medium_forest_colour
+        return image
+
+
+class FlatMediumForestLayer(Layer):
+    def __init__(
+        self,
+        medium_forest_colour: Colour | None = None,
+        max_height: int = 195,
+    ):
+        self.medium_forest_colour = np.asarray(medium_forest_colour or (35, 60, 50))
+        self.max_height = max_height
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+    ):
+        forest_mask = height_map <= self.max_height
+        image[forest_mask] = self.medium_forest_colour
+        return image
+
+
+class FlatDarkForestLayer(Layer):
+    def __init__(
+        self,
+        dark_forest_colour: Colour | None = None,
+        max_height: int = 220,
+    ):
+        self.dark_forest_colour = np.asarray(dark_forest_colour or (27, 48, 41))
+        self.max_height = max_height
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+    ):
+        forest_mask = height_map <= self.max_height
+        image[forest_mask] = self.dark_forest_colour
+        return image
+
+
+class ShallowWaterLayer(Layer):
+    def __init__(self, shallow_water_colour: Colour | None = None, max_height: int = 60):
+        self.shallow_water_colour = np.asarray(shallow_water_colour or (39, 70, 92))
+        self.max_height = max_height
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+    ):
+        shallow_water_mask = height_map <= self.max_height
+        image[shallow_water_mask] = self.shallow_water_colour
+        return image
+
+
+class MediumWaterLayer(Layer):
+    def __init__(self, medium_water_colour: Colour | None = None, max_height: int = 50):
+        self.medium_water_colour = np.asarray(medium_water_colour or (12, 35, 75))
+        self.max_height = max_height
+
+    def apply(
+        self,
+        height_map: np.ndarray[tuple[int, int], np.dtype[np.uint8]],
+        image: np.ndarray[Colour, np.dtype[np.uint8]],
+    ):
+        medium_water_mask = height_map <= self.max_height
+        image[medium_water_mask] = self.medium_water_colour
+        return image
+
+
 class WaterLayer(Layer):
     def __init__(
         self,
         dark_water: Colour | None = None,
         light_water: Colour | None = None,
-        max_height: int = 60,
+        max_height: int = 40,
     ):
         self.dark_water = np.asarray(dark_water or (8, 24, 49))
         self.light_water = np.asarray(light_water or (15, 30, 58))
