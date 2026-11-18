@@ -30,7 +30,7 @@ def makeImage(height_map, layers: list[Layer]):
     for layer in layers:
         image = layer.apply(height_map, image)
 
-    return image
+    return Image.fromarray(image)
 
 
 if __name__ == "__main__":
@@ -56,4 +56,4 @@ if __name__ == "__main__":
     )
 
     # creates an image from the map
-    Image.fromarray(img).show()
+    img.show()
